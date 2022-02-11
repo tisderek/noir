@@ -11,8 +11,6 @@ import {
 } from "firebase/auth";
 
 // import "firebase/firestore";
-// import "firebase/auth";
-// import "firebase/analytics";
 
 import { useAuthState } from "react-firebase-hooks/auth";
 import { useCollectionData } from "react-firebase-hooks/firestore";
@@ -51,24 +49,7 @@ function App() {
 function SignIn() {
   const signInWithGoogle = () => {
     const provider = new GoogleAuthProvider();
-    signInWithPopup(auth, provider)
-      .then((result) => {
-        //  Google Access Token to access the Google API
-        // const credential = GoogleAuthProvider.credentialFromResult(result);
-        // const token = credential.accessToken;
-        // user = result.user;
-      })
-      .catch((error) => {
-        // Handle Errors here.
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        // The email of the user's account used.
-        const email = error.email;
-        // The AuthCredential type that was used.
-        // const credential = GoogleAuthProvider.credentialFromError(error);
-        console.log(
-          `Failed to log in ${email}, error ${errorCode}: ${errorMessage}`
-        );
+    signInWithPopup(auth, provider);
       });
   };
 
