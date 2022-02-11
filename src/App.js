@@ -1,15 +1,23 @@
 import React, { useRef, useState } from "react";
 import "./App.css";
 
-import firebase from "firebase/app";
-import "firebase/firestore";
-import "firebase/auth";
-import "firebase/analytics";
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, getDocs } from "firebase/firestore/lite";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+} from "firebase/auth";
+
+// import "firebase/firestore";
+// import "firebase/auth";
+// import "firebase/analytics";
 
 import { useAuthState } from "react-firebase-hooks/auth";
 import { useCollectionData } from "react-firebase-hooks/firestore";
 
-firebase.initializeApp({
+const app = initializeApp({
   apiKey: "AIzaSyBdzqQluKJKsaCwYbc5lwUXEGbu954i2w0",
   authDomain: "chat-hello-world.firebaseapp.com",
   projectId: "chat-hello-world",
@@ -19,9 +27,10 @@ firebase.initializeApp({
   measurementId: "G-0X7J5G2YTY",
 });
 
-const auth = firebase.auth();
-const firestore = firebase.firestore();
-const analytics = firebase.analytics();
+const db = getFirestore(app);
+const auth = getAuth();
+
+// const firestore = firebase.firestore();
 
 function App() {
   const [user] = useAuthState(auth);
@@ -33,15 +42,34 @@ function App() {
         <SignOut />
       </header>
 
-      <section>{user ? <ChatRoom /> : <SignIn />}</section>
+      {/* <section>{user ? <ChatRoom /> : <SignIn />}</section> */}
+      <section>{user ? <p>logged in!</p> : <SignIn />}</section>
     </div>
   );
 }
 
 function SignIn() {
   const signInWithGoogle = () => {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider);
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider)
+      .then((result) => {
+        //  Google Access Token to access the Google API
+        // const credential = GoogleAuthProvider.credentialFromResult(result);
+        // const token = credential.accessToken;
+        // user = result.user;
+      })
+      .catch((error) => {
+        // Handle Errors here.
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        // The email of the user's account used.
+        const email = error.email;
+        // The AuthCredential type that was used.
+        // const credential = GoogleAuthProvider.credentialFromError(error);
+        console.log(
+          `Failed to log in ${email}, error ${errorCode}: ${errorMessage}`
+        );
+      });
   };
 
   return (
@@ -59,79 +87,79 @@ function SignIn() {
 function SignOut() {
   return (
     auth.currentUser && (
-      <button className="sign-out" onClick={() => auth.signOut()}>
+      <button className="sign-out" onClick={() => signOut(auth)}>
         Sign Out
       </button>
     )
   );
 }
 
-function ChatRoom() {
-  const dummy = useRef();
-  const messagesRef = firestore.collection("messages");
-  const query = messagesRef.orderBy("createdAt").limit(25);
+// function ChatRoom() {
+//   const dummy = useRef();
+//   const messagesRef = firestore.collection("messages");
+//   const query = messagesRef.orderBy("createdAt").limit(25);
 
-  const [messages] = useCollectionData(query, { idField: "id" });
+//   const [messages] = useCollectionData(query, { idField: "id" });
 
-  const [formValue, setFormValue] = useState("");
+//   const [formValue, setFormValue] = useState("");
 
-  const sendMessage = async (e) => {
-    e.preventDefault();
+//   const sendMessage = async (e) => {
+//     e.preventDefault();
 
-    const { uid, photoURL } = auth.currentUser;
+//     const { uid, photoURL } = auth.currentUser;
 
-    await messagesRef.add({
-      text: formValue,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      uid,
-      photoURL,
-    });
+//     await messagesRef.add({
+//       text: formValue,
+//       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+//       uid,
+//       photoURL,
+//     });
 
-    setFormValue("");
-    dummy.current.scrollIntoView({ behavior: "smooth" });
-  };
+//     setFormValue("");
+//     dummy.current.scrollIntoView({ behavior: "smooth" });
+//   };
 
-  return (
-    <>
-      <main>
-        {messages &&
-          messages.map((msg) => <ChatMessage key={msg.id} message={msg} />)}
+//   return (
+//     <>
+//       <main>
+//         {messages &&
+//           messages.map((msg) => <ChatMessage key={msg.id} message={msg} />)}
 
-        <span ref={dummy}></span>
-      </main>
+//         <span ref={dummy}></span>
+//       </main>
 
-      <form onSubmit={sendMessage}>
-        <input
-          value={formValue}
-          onChange={(e) => setFormValue(e.target.value)}
-          placeholder="say something nice"
-        />
+//       <form onSubmit={sendMessage}>
+//         <input
+//           value={formValue}
+//           onChange={(e) => setFormValue(e.target.value)}
+//           placeholder="say something nice"
+//         />
 
-        <button type="submit" disabled={!formValue}>
-          🕊️
-        </button>
-      </form>
-    </>
-  );
-}
+//         <button type="submit" disabled={!formValue}>
+//           🕊️
+//         </button>
+//       </form>
+//     </>
+//   );
+// }
 
-function ChatMessage(props) {
-  const { text, uid, photoURL } = props.message;
+// function ChatMessage(props) {
+//   const { text, uid, photoURL } = props.message;
 
-  const messageClass = uid === auth.currentUser.uid ? "sent" : "received";
+//   const messageClass = uid === auth.currentUser.uid ? "sent" : "received";
 
-  return (
-    <>
-      <div className={`message ${messageClass}`}>
-        <img
-          src={
-            photoURL || "https://api.adorable.io/avatars/23/abott@adorable.png"
-          }
-        />
-        <p>{text}</p>
-      </div>
-    </>
-  );
-}
+//   return (
+//     <>
+//       <div className={`message ${messageClass}`}>
+//         <img
+//           src={
+//             photoURL || "https://api.adorable.io/avatars/23/abott@adorable.png"
+//           }
+//         />
+//         <p>{text}</p>
+//       </div>
+//     </>
+//   );
+// }
 
 export default App;
