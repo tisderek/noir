@@ -50,7 +50,6 @@ function SignIn() {
   const signInWithGoogle = () => {
     const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider);
-      });
   };
 
   return (
